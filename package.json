@@ -1,0 +1,40 @@
+{
+  "name": "petshop",
+  "version": "1.0.0",
+  "description": "Projeto PetShop usando Fastify e Prisma",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:status": "prisma migrate status",
+    "prestart": "npm run prisma:generate"
+  },
+  "keywords": [
+    "fastify",
+    "prisma",
+    "petshop"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.0.1",
+    "@prisma/client": "^6.8.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.21",
+    "bcryptjs": "^3.0.2",
+    "fastify": "^5.3.3",
+    "fastify-cookie": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.8.2",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4"
+  }
+}
