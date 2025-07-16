@@ -6,9 +6,11 @@ const user_routes_1 = require("./user.routes");
 const faq_routes_1 = require("./faq.routes");
 const product_routes_1 = require("./product.routes");
 const course_routes_1 = require("./course.routes");
+const health_routes_1 = require("./health.routes");
 const admin_1 = require("../middlewares/admin");
 async function router(app) {
     // 🔓 Rotas públicas (não protegidas)
+    await (0, health_routes_1.healthRoutes)(app);
     await (0, auth_routes_1.authRoutes)(app);
     await (0, faq_routes_1.faqRoutes)(app);
     await (0, product_routes_1.productRoutes)(app);

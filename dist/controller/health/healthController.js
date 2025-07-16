@@ -1,25 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HealthController = void 0;
-const config_1 = require("../../config");
+const prisma_1 = require("../../utils/prisma");
 class HealthController {
     async check(request, reply) {
         try {
-            // Verificação básica de saúde do servidor
-            const uptime = process.uptime();
-            const timestamp = new Date().toISOString();
+            // Testa a conexão com o banco de dados
+            await prisma_1.prisma.$queryRaw `SELECT 1`;
             return reply.status(200).send({
                 status: 'OK',
-                uptime: Math.floor(uptime),
-                timestamp,
-                environment: config_1.CONFIG.NODE_ENV,
-                version: process.env.npm_package_version || '1.0.0'
+                timestamp: new Date().toISOString(),
+                service: 'Sarah Martins Backend',
+                database: 'connected',
+                uptime: process.uptime()
             });
         }
         catch (error) {
-            return reply.status(500).send({
+            return reply.status(503).send({
                 status: 'ERROR',
-                error: 'Health check failed'
+                timestamp: new Date().toISOString(),
+                service: 'Sarah Martins Backend',
+                database: 'disconnected',
+                error: error instanceof Error ? error.message : 'Unknown error'
             });
         }
     }

@@ -11,7 +11,7 @@ DATABASE_URL="postgresql://username:password@localhost:5432/petshop_db"
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 MASTER_KEY="your-master-key-for-admin-access"
 COOKIE_SECRET="your-cookie-secret-key"
-PORT=8080
+PORT=80
 NODE_ENV="production"
 FRONTEND_URL="https://your-frontend-domain.com"
 ```
@@ -27,7 +27,7 @@ docker build -t petshop-backend .
 # Executar
 docker run -d \
   --name petshop-backend \
-  -p 8080:8080 \
+  -p 80:80 \
   --env-file .env \
   petshop-backend
 ```
