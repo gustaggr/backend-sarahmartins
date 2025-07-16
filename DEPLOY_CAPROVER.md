@@ -44,8 +44,7 @@ tar -czf petshop-backend.tar.gz .
 
 ### 4. Configurar Health Check
 
-- **Container HTTP Port**: `80`
-- **Health Check Path**: `/health`
+- **Container HTTP Port**: `3000`
 
 ### 5. Executar Migrações (Primeira vez)
 
