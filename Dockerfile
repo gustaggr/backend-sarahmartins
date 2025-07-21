@@ -1,7 +1,7 @@
 # Etapa 1: Build com Node.js e todas as dependências
 FROM node:20 AS builder
 
-# Build args usados por CapRover (opcional)
+# Build args usados por CapRover
 ARG CAPROVER_GIT_COMMIT_SHA
 ARG DATABASE_URL
 ARG FRONTEND_URL
@@ -11,57 +11,52 @@ ARG PORT
 
 WORKDIR /app
 
-# Copiar os arquivos de dependência explicitamente (evita falha com *)
+# Copiar arquivos de dependência
 COPY package.json package-lock.json ./
 
-# Instalar TODAS as dependências (inclusive dev)
+# Instalar todas as dependências (dev + production)
 RUN npm ci
 
-RUN npm install @types/nodemailer --save-dev
-
-# Copiar o restante da aplicação
+# Copiar código fonte
 COPY . .
 
-# Verificar se os tipos do nodemailer estão presentes (debug opcional)
-RUN ls -la node_modules/ | head -10
-RUN ls -la node_modules/@types/ || echo "Pasta @types não existe"
-RUN ls -la node_modules/@types/nodemailer
-# Gerar o cliente do Prisma
+# Gerar cliente Prisma
 RUN npm run prisma:generate
 
 # Compilar TypeScript
 RUN npm run build
 
-# Remover devDependencies após o build
+# Remover devDependencies para reduzir tamanho
 RUN npm prune --production
 
-# Etapa 2: container final e enxuto
+# Etapa 2: Imagem final otimizada
 FROM node:20-slim
 
-# Instalar ferramentas necessárias para healthcheck
+# Instalar dependências do sistema para healthcheck
 RUN apt-get update && apt-get install -y \
     wget \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 WORKDIR /app
 
-# Copiar apenas o necessário da etapa anterior
-COPY --from=builder /app/package.json ./ 
+# Copiar apenas arquivos necessários da etapa de build
+COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# Variáveis padrão (podem ser sobrescritas via CapRover)
+# Configurar ambiente de produção
 ENV NODE_ENV=production
 ENV PORT=80
 
-# Expor a porta
+# Expor porta
 EXPOSE 80
 
 # Healthcheck para CapRover
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
 
-# Comando final
+# Comando de inicialização
 CMD ["node", "dist/server.js"]
