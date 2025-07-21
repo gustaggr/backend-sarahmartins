@@ -17,6 +17,8 @@ COPY package.json package-lock.json ./
 # Instalar TODAS as dependências (inclusive dev)
 RUN npm ci
 
+RUN npm install @types/nodemailer --save-dev
+
 # Copiar o restante da aplicação
 COPY . .
 
