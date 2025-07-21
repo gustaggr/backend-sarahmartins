@@ -21,8 +21,9 @@ RUN npm ci
 COPY . .
 
 # Verificar se os tipos do nodemailer estão presentes (debug opcional)
+RUN ls -la node_modules/ | head -10
+RUN ls -la node_modules/@types/ || echo "Pasta @types não existe"
 RUN ls -la node_modules/@types/nodemailer
-
 # Gerar o cliente do Prisma
 RUN npm run prisma:generate
 
