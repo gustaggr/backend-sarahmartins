@@ -1,7 +1,7 @@
-# Etapa 1: build com Node.js
+# Etapa 1: Build com Node.js e todas as dependências
 FROM node:20 AS builder
 
-# Aceitar build args do CapRover (elimina warnings)
+# Build args usados por CapRover (opcional)
 ARG CAPROVER_GIT_COMMIT_SHA
 ARG DATABASE_URL
 ARG FRONTEND_URL
@@ -9,27 +9,33 @@ ARG JWT_SECRET
 ARG NODE_ENV
 ARG PORT
 
-# Diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos de dependência e instala
-COPY package*.json ./
-RUN npm install
+# Copiar os arquivos de dependência explicitamente (evita falha com *)
+COPY package.json package-lock.json ./
 
-# Copia o restante do projeto
+# Instalar TODAS as dependências (inclusive dev)
+RUN npm ci
+
+# Copiar o restante da aplicação
 COPY . .
 
-# Gera cliente Prisma e compila TypeScript
+# Verificar se os tipos do nodemailer estão presentes (debug opcional)
+RUN ls -la node_modules/@types/nodemailer
+
+# Gerar o cliente do Prisma
 RUN npm run prisma:generate
+
+# Compilar TypeScript
 RUN npm run build
 
-# Remove devDependencies após o build
+# Remover devDependencies após o build
 RUN npm prune --production
 
 # Etapa 2: container final e enxuto
 FROM node:20-slim
 
-# Instalar dependências necessárias
+# Instalar ferramentas necessárias para healthcheck
 RUN apt-get update && apt-get install -y \
     wget \
     ca-certificates \
@@ -37,25 +43,22 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copia apenas o necessário do build
-COPY --from=builder /app/package*.json ./
+# Copiar apenas o necessário da etapa anterior
+COPY --from=builder /app/package.json ./ 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 
-# Configurações padrão (podem ser sobrescritas pelas env vars do CapRover)
+# Variáveis padrão (podem ser sobrescritas via CapRover)
 ENV NODE_ENV=production
 ENV PORT=80
 
-# Exponha a porta do Fastify
+# Expor a porta
 EXPOSE 80
 
-# Health check para CapRover
+# Healthcheck para CapRover
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
 
-# Inicia o servidor
-CMD ["node", "dist/server.js"]
-
-# Inicia o servidor
+# Comando final
 CMD ["node", "dist/server.js"]
