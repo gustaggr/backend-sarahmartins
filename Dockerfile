@@ -17,7 +17,11 @@ COPY package.json package-lock.json ./
 # Instalar todas as dependências (dev + production)
 RUN npm ci
 
-RUN npm install @types/nodemailer@^6.4.17 --save-dev
+RUN npm cache clean --force
+RUN npm install @types/nodemailer@^6.4.17 --save-dev --no-package-lock
+
+# Verificar se foi instalado
+RUN ls -la node_modules/@types/nodemailer || echo "AINDA NÃO INSTALADO"
 
 # Copiar código fonte
 COPY . .
