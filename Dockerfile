@@ -20,6 +20,9 @@ RUN npm install
 # Copiar código fonte
 COPY . .
 
+# Criar declaração manual para nodemailer
+RUN mkdir -p src/types && echo 'declare module "nodemailer" { const nodemailer: any; export = nodemailer; }' > src/types/nodemailer.d.ts
+
 # Gerar cliente Prisma
 RUN npm run prisma:generate
 
