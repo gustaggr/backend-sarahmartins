@@ -17,7 +17,7 @@ export async function requestPasswordResetLink(email: string) {
   });
 
 const frontendUrl = process.env.FRONTEND_URL as string;
-const link = `${frontendUrl}trocar-senha?token=${token}`;
+const link = `${frontendUrl}/trocar-senha?token=${token}`;
 
   await sendPasswordResetEmail(email, link);
 }
