@@ -78,43 +78,52 @@ export class AuthController {
   }
 
   // Método para verificar a validade do token pela session_id
-  async verifyToken(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const sessionId = request.cookies.session_id;
+ async verifyToken(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const sessionId = request.cookies.session_id;
 
-      if (!sessionId) {
-        return reply.status(401).send({ message: 'Sessão não encontrada (session_id ausente)' });
-      }
-
-      const session = await prisma.session.findUnique({ where: { sessionId } });
-
-      if (!session) {
-        // Limpa cookie se a sessão não existe
-        reply.clearCookie('session_id', { path: '/' });
-        return reply.status(401).send({ message: 'Sessão inválida ou não encontrada' });
-      }
-
-      if (session.expiresAt < new Date()) {
-        // Deleta sessão expirada
-        await prisma.session.delete({ where: { sessionId } });
-        reply.clearCookie('session_id', { path: '/' });
-        return reply.status(401).send({ message: 'Sessão expirada' });
-      }
-
-      const jwtSecret = CONFIG.JWT_SECRET;
-      if (!jwtSecret) {
-        request.log.error("JWT_SECRET não está definido.");
-        return reply.status(500).send({ message: "Erro interno no servidor." });
-      }
-
-      const decoded = jwt.verify(session.token, jwtSecret);
-
-      return reply.status(200).send({ message: 'Sessão válida', user: decoded });
-
-    } catch (error: any) {
-      return reply.status(401).send({ message: 'Token inválido ou erro na verificação', error: error.message });
+    if (!sessionId) {
+      return reply.status(401).send({ message: 'Sessão não encontrada (session_id ausente)' });
     }
+
+    const session = await prisma.session.findUnique({ where: { sessionId } });
+
+    if (!session) {
+      // Limpa cookie se a sessão não existe
+      reply.clearCookie('session_id', { path: '/' });
+      return reply.status(401).send({ message: 'Sessão inválida ou não encontrada' });
+    }
+
+    if (session.expiresAt < new Date()) {
+      // Deleta sessão expirada
+      await prisma.session.delete({ where: { sessionId } });
+      reply.clearCookie('session_id', { path: '/' });
+      return reply.status(401).send({ message: 'Sessão expirada' });
+    }
+
+    // Verifica se o usuário ainda existe no banco
+    const user = await prisma.user.findUnique({ where: { id: session.userId } });
+    if (!user) {
+      // Remove sessão se usuário foi deletado
+      await prisma.session.delete({ where: { sessionId } });
+      reply.clearCookie('session_id', { path: '/' });
+      return reply.status(401).send({ message: 'Usuário não encontrado' });
+    }
+
+    const jwtSecret = CONFIG.JWT_SECRET;
+    if (!jwtSecret) {
+      request.log.error("JWT_SECRET não está definido.");
+      return reply.status(500).send({ message: "Erro interno no servidor." });
+    }
+
+    const decoded = jwt.verify(session.token, jwtSecret);
+
+    return reply.status(200).send({ message: 'Sessão válida', user: decoded });
+
+  } catch (error: any) {
+    return reply.status(401).send({ message: 'Token inválido ou erro na verificação', error: error.message });
   }
+}
 
   // Método opcional para logout: apaga a sessão no banco e limpa cookie
   async logout(request: FastifyRequest, reply: FastifyReply) {
