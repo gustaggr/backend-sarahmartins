@@ -83,3 +83,10 @@ model Cliente {
   criadoEm      DateTime @default(now())
   atualizadoEm  DateTime @updatedAt
 }
+
+model Chat_Id {
+  id        String   @id @default(cuid())
+  number    String   @unique
+  chatId    String   @unique
+  criadoEm  DateTime @default(now())
+}

@@ -11,6 +11,7 @@ import { recoveryPassword } from './recovery.routes';
 import { AdminOrMasterKeyMiddleware } from '../middlewares/admin';
 import { clientRoutes } from './client.routes';
 import { contentRoutes } from './content.routes';
+import { chatIdRoutes } from './chatid.routes';
 
 export async function router(app: FastifyInstance) {
   // 🔓 Rotas públicas (sem autenticação)
@@ -25,7 +26,9 @@ export async function router(app: FastifyInstance) {
     // Aplica middleware de autenticação para todas as rotas deste grupo
     protectedRoutes.addHook('onRequest', AdminOrMasterKeyMiddleware);
     
+    
     await faqRoutes(protectedRoutes);
+    await chatIdRoutes(protectedRoutes);
     await contentRoutes(protectedRoutes);
     await clientRoutes(protectedRoutes);
     await productRoutes(protectedRoutes);
