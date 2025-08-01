@@ -12,7 +12,7 @@ export class CreateChatIdController {
 
             const chatExists = await prisma.chat_Id.findFirst({ where: { number } });
             if (chatExists) {
-                return reply.status(400).send({ error: "Já existe um chatId associado a este número" });
+                return reply.status(200).send({ chatId: chatExists.chatId });
             }
 
             let chatId: string;
