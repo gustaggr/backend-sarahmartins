@@ -73,3 +73,13 @@ model PasswordResetToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+model Cliente {
+  id            String   @id @default(cuid())
+  nome          String
+  numero        String   @unique // Número do WhatsApp — obrigatório
+  email         String?  // opcional
+  cursos        String[] // Nome exato como vem da Hotmart, ex: "Genograma TAI - Março/24"
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+}

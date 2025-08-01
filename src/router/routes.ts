@@ -9,6 +9,8 @@ import { healthRoutes } from './health.routes';
 import { recoveryPassword } from './recovery.routes';
 
 import { AdminOrMasterKeyMiddleware } from '../middlewares/admin';
+import { clientRoutes } from './client.routes';
+import { contentRoutes } from './content.routes';
 
 export async function router(app: FastifyInstance) {
   // 🔓 Rotas públicas (sem autenticação)
@@ -24,6 +26,8 @@ export async function router(app: FastifyInstance) {
     protectedRoutes.addHook('onRequest', AdminOrMasterKeyMiddleware);
     
     await faqRoutes(protectedRoutes);
+    await contentRoutes(protectedRoutes);
+    await clientRoutes(protectedRoutes);
     await productRoutes(protectedRoutes);
     await courseRoutes(protectedRoutes);
     await userRoutes(protectedRoutes);
